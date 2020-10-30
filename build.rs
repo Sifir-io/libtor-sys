@@ -70,9 +70,19 @@ fn build_libevent() -> Artifacts {
     }
 
     let mut config = autotools::Config::new(path.clone());
+    let mut config = autotools::Config::new(path.clone());
+    config.out_dir(&root);
+    if target.contains("aarch64-apple-ios") {
+        config
+        .env("CC", "cc")
+        .env("CFLAGS", "-arch arm64 -mios-version-min=7.0.0 -fno-common -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.1.sdk -O3 -O2 -fPIC -g -fno-omit-frame-pointer -miphoneos-version-min=7.0");
+    } else if target.contains("x86_64-apple-ios") {
+        config.env("CC", "cc")
+        .env("CFLAGS", "-arch x86_64 -mios-version-min=7.0.0 -fno-common -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator14.1.sdk -O3 -O2 -fPIC -g -fno-omit-frame-pointer -miphoneos-version-min=7.0");
+    } else {
+        config.env("CC", compiler.path());
+    }
     config
-        .out_dir(&root)
-        .env("CC", compiler.path())
         .host(&target)
         .enable_static()
         .disable_shared()
@@ -134,8 +144,18 @@ fn build_tor(libevent: Artifacts) {
     }
 
     let mut config = autotools::Config::new(path.clone());
+
+    if target.contains("aarch64-apple-ios") {
+        config
+        .env("CC", "cc")
+        .env("CFLAGS", "-arch arm64 -mios-version-min=7.0.0 -fno-common -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.1.sdk -O3 -O2 -fPIC -g -fno-omit-frame-pointer -miphoneos-version-min=7.0");
+    } else if target.contains("x86_64-apple-ios") {
+        config.env("CC", "cc")
+        .env("CFLAGS", "-arch x86_64 -mios-version-min=7.0.0 -fno-common -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator14.1.sdk -O3 -O2 -fPIC -g -fno-omit-frame-pointer -miphoneos-version-min=7.0");
+    } else {
+        config.env("CC", compiler.path());
+    }
     config
-        .env("CC", compiler.path())
         .with("libevent-dir", libevent.root.to_str())
         .cflag(format!("-I{}", libevent.include_dir.display()))
         .enable("pic", None)
